@@ -19,7 +19,7 @@ import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private DBHandler mDbHandler;
     private ExpandableListView exListView;
     static final String ACCESS_MESSAGE = "ACCESS_MESSAGE";
@@ -39,13 +39,7 @@ public class MainActivity extends AppCompatActivity {
         exListView.setAdapter(adapter);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        fab.setOnClickListener(this);
     }
 
     @Override
@@ -87,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                 adapter.clearTrash();
                 return true;
             case R.id.action_restore_trash:
-
+                adapter.restoreFromTrash();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -98,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ACCESS_TYPE_ADD) {
             if (resultCode == RESULT_OK) {
                 Task task = (Task) data.getSerializableExtra(ACCESS_MESSAGE);
-                int id = /*dbWorker.addStudent(newStudent)*/ 0;
+                int id = mDbHandler.addTask(task);
                 task.setId(id);
                 adapter.addingTask(task);
             }
@@ -113,5 +107,15 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
+    }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case  R.id.fab: {
+                Intent intent = new Intent(this, TaskAddingActivity.class);
+                startActivityForResult(intent, REQUEST_ACCESS_TYPE_ADD);
+                break;
+            }
+        }
     }
 }

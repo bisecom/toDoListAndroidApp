@@ -29,12 +29,12 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/action_clear_trash"
-        android:orderInCategory="6"
+        android:orderInCategory="7"
         android:title="@string/action_clear_trash"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_restore_trash"
-        android:orderInCategory="7"
+        android:orderInCategory="6"
         android:title="@string/action_restore"
         app:showAsAction="never" />
 </menu>

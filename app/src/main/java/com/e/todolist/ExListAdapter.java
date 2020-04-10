@@ -171,6 +171,7 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         search:
         {
             for (Condition c : tPool.getConditions()) {
+                taskIndex = 0;
                 for (Task t : c.getTasks()) {
                     if (t.getCondition() == task.getCondition() && t.getId() == task.getId()) {
                         break search;
@@ -213,6 +214,7 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         }
         for (Task t : list) {
             t.setChecked(false);
+            t.setCondition(3);
             tPool.getConditions().get(2).getTasks().add(t);
         }
         this.notifyDataSetChanged();
@@ -245,6 +247,7 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         }
         for (Task t : list) {
             t.setChecked(false);
+            t.setCondition(4);
             tPool.getConditions().get(3).getTasks().add(t);
         }
         this.notifyDataSetChanged();
@@ -252,6 +255,39 @@ public class ExListAdapter extends BaseExpandableListAdapter {
 
     public void clearTrash(){
         tPool.getConditions().get(3).getTasks().clear();
+        this.notifyDataSetChanged();
+    }
+
+    public void restoreFromTrash() {
+        ArrayList<Task> list = new ArrayList<>();
+        for (Condition c : tPool.getConditions()) {
+            for (Task t : c.getTasks()) {
+                if (t.getChecked() && t.getCondition() > 3) {
+                    list.add(t);
+                }
+                if(t.getChecked() && t.getCondition() < 4){
+                    return;
+                }
+            }
+        }
+
+        for (Task t : list) {
+            for (Condition c : tPool.getConditions()) {
+                if (c.getTasks().size() > 0) {
+                    for (int i = c.getTasks().size() - 1; i >= 0; i--) {
+                        if (c.getTasks().get(i).getId() == t.getId()) {
+                            c.getTasks().remove(i);
+                        }
+
+                    }
+                }
+            }
+        }
+        for (Task t : list) {
+            t.setChecked(false);
+            t.setCondition(1);
+            tPool.getConditions().get(0).getTasks().add(t);
+        }
         this.notifyDataSetChanged();
     }
 }

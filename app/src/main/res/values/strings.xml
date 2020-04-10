@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">TO DO LIST</string>
     <string name="action_create">Create</string>
-    <string name="action_edit">Edit</string>
+    <string name="action_edit">Open | Edit</string>
     <string name="action_delete">Remove</string>
     <string name="action_done">Move to Done</string>
     <string name="action_move_trash">Move to Trash</string>
-    <string name="action_clear_trash">Clear Trash</string>
+    <string name="action_clear_trash">Clear All Trash</string>
     <string name="action_restore">Restore From Trash</string>
 </resources>

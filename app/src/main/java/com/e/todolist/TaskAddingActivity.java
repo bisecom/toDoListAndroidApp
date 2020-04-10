@@ -22,8 +22,8 @@ public class TaskAddingActivity extends AppCompatActivity {
     private Boolean isImportant;
     private TextView currentDateTime;
     private Calendar dateAndTime;
-    private final static int ACTIVE_COND = 1;
     private int initialId = -1;
+    private int taskCondition = -1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +41,7 @@ public class TaskAddingActivity extends AppCompatActivity {
             descrET.setText(task.getDescription());
             currentDateTime.setText(task.getPlacementTime());
             initialId = task.getId();
+            taskCondition = task.getCondition();
         }
     }
 
@@ -66,7 +67,7 @@ public class TaskAddingActivity extends AppCompatActivity {
                 String subjStr = subjET.getText().toString();
                 String descrStr = descrET.getText().toString();
 
-                Task task = new Task(initialId == -1 ? -1 : initialId, subjStr, descrStr, ACTIVE_COND, currentDateTime.getText().toString(), isImportant, false);
+                Task task = new Task(initialId == -1 ? -1 : initialId, subjStr, descrStr, taskCondition == -1 ? -1 : taskCondition, currentDateTime.getText().toString(), isImportant, false);
                 Intent intentFilled = new Intent();
                 intentFilled.putExtra(MainActivity.ACCESS_MESSAGE, task);
                 setResult(RESULT_OK, intentFilled);

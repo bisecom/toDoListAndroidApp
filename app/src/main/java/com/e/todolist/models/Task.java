@@ -2,7 +2,9 @@ package com.e.todolist.models;
 
 import java.io.Serializable;
 
-public class Task implements Serializable {
+import io.realm.RealmObject;
+
+public class Task extends RealmObject implements Serializable {
 
     private int id;
     private String subject;
@@ -22,6 +24,7 @@ public class Task implements Serializable {
         this.isImportant = isImportant;
         this.isChecked = isChecked;
     }
+    public Task(){}
 
     public int getId() {
         return id;
