@@ -82,14 +82,12 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         ImageView imageView = resultView.findViewById(R.id.conditionIcon);
         TextView subjTv = resultView.findViewById(R.id.subject);
         TextView  descrTv = resultView.findViewById(R.id.description);
-        //TextView condTv = resultView.findViewById(R.id.condition);
         LinearLayout taskLl = resultView.findViewById(R.id.taskLine);
         CheckBox isCheckedCB = resultView.findViewById(R.id.isChecked);
 
         Task mTask = tPool.getConditions().get(groupPosition).getTasks().get(childPosition);
-        subjTv.setText(mTask.getSubject());
+        subjTv.setText(mTask.getSubject() + " | " + mTask.getPlacementTime().substring(2));
         descrTv.setText(mTask.getDescription());
-        //condTv.setText(Integer.toString(mTask.getCondition()));
         taskLl.setTag(tPool.getConditions().get(groupPosition).getTitle());
         isCheckedCB.setOnCheckedChangeListener(myCheckChangeList);
         isCheckedCB.setTag(childPosition);
@@ -172,7 +170,7 @@ public class ExListAdapter extends BaseExpandableListAdapter {
             for (Condition c : tPool.getConditions()) {
                 taskIndex = 0;
                 for (Task t : c.getTasks()) {
-                    if (t.getCondition() == task.getCondition() && t.getId() == task.getId()) {
+                    if (/*t.getCondition() == task.getCondition() &&*/ t.getId() == task.getId()) {
                         break search;
                     }
                     taskIndex++;
@@ -228,6 +226,17 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         this.notifyDataSetChanged();
 
         return list;
+    }
+
+    public void moveToOverdue(Task task){
+        for(Task temp : tPool.getConditions().get(0).getTasks()){
+            if(temp.getId() == task.getId()){
+                tPool.getConditions().get(0).getTasks().remove(temp);
+                break;
+            }
+        }
+        tPool.getConditions().get(1).getTasks().add(task);
+        this.notifyDataSetChanged();
     }
 
     public void clearTrash(){

@@ -8,12 +8,9 @@ import com.e.todolist.models.TasksPool;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -141,8 +138,8 @@ public class DBHandler {
 
     public void initialDataFill() {
         ArrayList<Task> tasks = new ArrayList<>();
-        tasks.add(new Task(0, "Task 1", "Description for task 1", 1, "2020-04-11 19:00", false, false));
-        tasks.add(new Task(0, "Task 2", "Description for task 2", 1, "2020-04-11 12:28", true, false));
+        tasks.add(new Task(0, "Task 1", "Description for task 1", 1, "2020-04-13 20:00", false, false));
+        tasks.add(new Task(0, "Task 2", "Description for task 2", 1, "2020-04-11 19:55", true, false));
         tasks.add(new Task(0, "Task 3", "Description for task 3", 1, "2020-04-08 10:00", false, false));
         tasks.add(new Task(0, "Task 4", "Description for task 4", 2, "2020-04-06 09:00", true, false));
         tasks.add(new Task(0, "Task 5", "Description for task 5", 2, "2020-04-07 09:00", false, false));
@@ -186,13 +183,7 @@ public class DBHandler {
                 condTrash.addTask(task);
             }
             if (task.getCondition() == 1) {
-                Calendar taskDate = Calendar.getInstance();
-                try {
-                    taskDate.setTime(dateFormat.parse(task.getPlacementTime()));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                long millisTaskTime = taskDate.getTimeInMillis();
+                long millisTaskTime = dateConvertToMillis(task.getPlacementTime());
                 if (millisCurrTimeAndDate > millisTaskTime) {
                     task.setCondition(2);
                     condOverdue.addTask(task);
@@ -206,6 +197,20 @@ public class DBHandler {
         tPool.addCondition(condOverdue);
         tPool.addCondition(condDone);
         tPool.addCondition(condTrash);
+    }
+
+    public long dateConvertToMillis(String dateAndTime){
+        Calendar taskDate = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        try {
+            if(dateFormat.parse(dateAndTime) != null) {
+                taskDate.setTime(dateFormat.parse(dateAndTime));
+                return taskDate.getTimeInMillis();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 }

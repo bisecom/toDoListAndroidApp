@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -102,13 +101,7 @@ public class TaskAddingActivity extends AppCompatActivity {
     private void setInitialDateTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         dateFormat.setTimeZone(dateAndTime.getTimeZone());
-        //System.out.println(dateFormat.format(dateAndTime.getTime()));
-        //String dateTime = dateFormat.format(dateAndTime.getTime());
         currentDateTime.setText(dateFormat.format(dateAndTime.getTime()));
-        /*currentDateTime.setText(DateUtils.formatDateTime(this,
-                dateAndTime.getTimeInMillis(),
-                DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR
-                        | DateUtils.FORMAT_SHOW_TIME));*/
     }
 
     // установка обработчика выбора времени

@@ -13,13 +13,19 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private DBHandler mDbHandler;
@@ -28,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static  final int REQUEST_ACCESS_TYPE_ADD = 1;
     private static  final int REQUEST_ACCESS_TYPE_EDIT = 2;
     private ExListAdapter adapter;
+    private Runnable overdueChecker;
+    private Thread threadWorker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ExListAdapter(this, mDbHandler.gettPool());
         exListView.setAdapter(adapter);
 
+        runBackgroundThread();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(this);
     }
@@ -105,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(list != null && list.size() != 0){
                     mDbHandler.moveTasksToCondition(list, condToApply);
                     list.clear();
+                    runBackgroundThread();
                 }
                 return true;
         }
@@ -119,17 +129,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 int id = mDbHandler.addTask(task);
                 task.setId(id);
                 adapter.addingTask(task);
+
+                runBackgroundThread();
             }
         }
-            if (requestCode == REQUEST_ACCESS_TYPE_EDIT) {
-                if (resultCode == RESULT_OK) {
-                    Task task = (Task) data.getSerializableExtra(ACCESS_MESSAGE);
-                    adapter.editTask(task);
-                    mDbHandler.editTask(task);
-                }
-            } else {
-                super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ACCESS_TYPE_EDIT) {
+            if (resultCode == RESULT_OK) {
+                Task task = (Task) data.getSerializableExtra(ACCESS_MESSAGE);
+                adapter.editTask(task);
+                mDbHandler.editTask(task);
             }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
@@ -142,4 +154,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
+
+    public class CustomRunnable implements Runnable {
+        private ArrayList<Task>activeTasks;
+        private volatile boolean isShutdown;
+        CustomRunnable(ArrayList<Task>tasksList) {
+            this.activeTasks = tasksList;
+            isShutdown = false;
+        }
+
+        @Override
+        public void run() {
+            Message msg = null;
+            try {
+                while (msg == null /*|| !isShutdown*/) {
+                    Thread.sleep(10000);
+                    Calendar curTimeAndDate = new GregorianCalendar();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    dateFormat.setTimeZone(curTimeAndDate.getTimeZone());
+                    long millisCurrTimeAndDate = curTimeAndDate.getTimeInMillis();
+
+                    for (Task task : activeTasks) {
+                        long taskTimeMill = mDbHandler.dateConvertToMillis(task.getPlacementTime());
+                        if (millisCurrTimeAndDate > taskTimeMill && taskTimeMill != 0) {
+                            msg = Message.obtain();
+                            msg.obj = task;
+                            myHandle.sendMessage(msg);
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                new Exception("Something bad happened in background thread.");
+            }
+        }
+
+       /* public void interrupt() {
+            isShutdown = true;
+        }*/
+    }
+
+    Handler myHandle = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            int overdueCond = 2;
+            Task taskToMove = (Task)msg.obj;
+            if(taskToMove != null) {
+                taskToMove.setCondition(overdueCond);
+                adapter.moveToOverdue(taskToMove);
+                mDbHandler.editTask(taskToMove);
+            }
+            return false;
+        }
+    });
+
+    public void runBackgroundThread() {
+        if (overdueChecker != null && threadWorker != null) {
+            threadWorker.interrupt();
+            overdueChecker = null;
+        }
+        overdueChecker = new CustomRunnable(adapter.tPool.getConditions().get(0).getTasks());
+        threadWorker = new Thread(overdueChecker);
+        threadWorker.start();
+    }
+
 }
