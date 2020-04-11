@@ -19,6 +19,8 @@ import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private DBHandler mDbHandler;
     private ExpandableListView exListView;
@@ -53,13 +55,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        int conditionsInWork, condOutOfWork, condToApply, condIndex;
+        ArrayList<Task> list;
         switch(id){
             case R.id.action_create :
                 Intent intent = new Intent(this, TaskAddingActivity.class);
                 startActivityForResult(intent, REQUEST_ACCESS_TYPE_ADD);
                 return true;
             case R.id.action_delete:
-                adapter.deletingTasks();
+                list = adapter.deletingTasks();
+                if(list != null && list.size() != 0){
+                    mDbHandler.removeTasks(list);
+                    list.clear();
+                }
                 return true;
             case R.id.action_edit:
                 Task task = adapter.getTaskEditing();
@@ -72,16 +80,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(intentEdit, REQUEST_ACCESS_TYPE_EDIT);
             return true;
             case R.id.action_done:
-                adapter.moveToDone();
+                conditionsInWork = 3; condOutOfWork = 2; condToApply = 3; condIndex = 2;
+                list = adapter.moveToCondition(conditionsInWork, condOutOfWork, condToApply, condIndex);
+                if(list != null && list.size() != 0){
+                    mDbHandler.moveTasksToCondition(list, condToApply);
+                    list.clear();
+                }
                 return true;
             case R.id.action_to_trash:
-                adapter.moveToTrash();
+                conditionsInWork = 4; condOutOfWork = 3; condToApply = 4; condIndex = 3;
+                list = adapter.moveToCondition(conditionsInWork, condOutOfWork, condToApply, condIndex);
+                if(list != null && list.size() != 0){
+                    mDbHandler.moveTasksToCondition(list, condToApply);
+                    list.clear();
+                }
                 return true;
             case R.id.action_clear_trash:
                 adapter.clearTrash();
+                mDbHandler.clearTrash();
                 return true;
             case R.id.action_restore_trash:
-                adapter.restoreFromTrash();
+                conditionsInWork = 3; condOutOfWork = 4; condToApply = 1; condIndex = 0;
+                list = adapter.moveToCondition(conditionsInWork, condOutOfWork, condToApply, condIndex);
+                if(list != null && list.size() != 0){
+                    mDbHandler.moveTasksToCondition(list, condToApply);
+                    list.clear();
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -101,13 +125,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultCode == RESULT_OK) {
                     Task task = (Task) data.getSerializableExtra(ACCESS_MESSAGE);
                     adapter.editTask(task);
+                    mDbHandler.editTask(task);
                 }
             } else {
                 super.onActivityResult(requestCode, resultCode, data);
             }
-
-
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {

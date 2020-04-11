@@ -1,8 +1,6 @@
 package com.e.todolist;
 
 import android.content.Context;
-import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,13 +11,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
-
 import com.e.todolist.models.Condition;
 import com.e.todolist.models.Task;
 import com.e.todolist.models.TasksPool;
 
-import java.security.acl.Group;
 import java.util.ArrayList;
 
 public class ExListAdapter extends BaseExpandableListAdapter {
@@ -33,8 +28,6 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         this.tPool = tPool;
         vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
-
-
 
     @Override
     public int getGroupCount() {
@@ -134,12 +127,18 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         super.notifyDataSetChanged();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public void deletingTasks() {
+    public ArrayList<Task> deletingTasks() {
+        ArrayList<Task> list = new ArrayList<>();
         for (Condition cond : tPool.getConditions()) {
-            cond.getTasks().removeIf(n -> n.getChecked().equals(true));
+            for (int i = cond.getTasks().size() - 1; i >= 0; i--) {
+                if (cond.getTasks().get(i).getChecked().equals(true)) {
+                    list.add(cond.getTasks().get(i));
+                    cond.getTasks().remove(i);
+                }
+            }
         }
         this.notifyDataSetChanged();
+        return list;
     }
 
     public void addingTask(Task task) {
@@ -187,15 +186,24 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         this.notifyDataSetChanged();
     }
 
-    public void moveToDone(){
+    public ArrayList<Task> moveToCondition(int conditionsInWork, int condOutOfWork, int condToApply, int condIndex){
         ArrayList<Task> list = new ArrayList<>();
         for (Condition c : tPool.getConditions()) {
             for (Task t : c.getTasks()) {
-                if (t.getChecked() && t.getCondition() < 3) {
-                    list.add(t);
-                }
-                if(t.getChecked() && t.getCondition() > 2){
-                    return;
+                if(condIndex != 0) {
+                    if (t.getChecked() && t.getCondition() < conditionsInWork) {
+                        list.add(t);
+                    }
+                    if (t.getChecked() && t.getCondition() > condOutOfWork) {
+                        return null;
+                    }
+                }else{
+                    if (t.getChecked() && t.getCondition() > conditionsInWork) {
+                        list.add(t);
+                    }
+                    if(t.getChecked() && t.getCondition() < condOutOfWork){
+                        return null;
+                    }
                 }
             }
         }
@@ -214,80 +222,16 @@ public class ExListAdapter extends BaseExpandableListAdapter {
         }
         for (Task t : list) {
             t.setChecked(false);
-            t.setCondition(3);
-            tPool.getConditions().get(2).getTasks().add(t);
+            t.setCondition(condToApply);
+            tPool.getConditions().get(condIndex).getTasks().add(t);
         }
         this.notifyDataSetChanged();
-    }
 
-    public void moveToTrash(){
-        ArrayList<Task> list = new ArrayList<>();
-        for (Condition c : tPool.getConditions()) {
-            for (Task t : c.getTasks()) {
-                if (t.getChecked() && t.getCondition() < 4) {
-                    list.add(t);
-                }
-                if(t.getChecked() && t.getCondition() > 3){
-                    return;
-                }
-            }
-        }
-
-        for (Task t : list) {
-            for (Condition c : tPool.getConditions()) {
-                if (c.getTasks().size() > 0) {
-                    for (int i = c.getTasks().size() - 1; i >= 0; i--) {
-                        if (c.getTasks().get(i).getId() == t.getId()) {
-                            c.getTasks().remove(i);
-                        }
-
-                    }
-                }
-            }
-        }
-        for (Task t : list) {
-            t.setChecked(false);
-            t.setCondition(4);
-            tPool.getConditions().get(3).getTasks().add(t);
-        }
-        this.notifyDataSetChanged();
+        return list;
     }
 
     public void clearTrash(){
         tPool.getConditions().get(3).getTasks().clear();
-        this.notifyDataSetChanged();
-    }
-
-    public void restoreFromTrash() {
-        ArrayList<Task> list = new ArrayList<>();
-        for (Condition c : tPool.getConditions()) {
-            for (Task t : c.getTasks()) {
-                if (t.getChecked() && t.getCondition() > 3) {
-                    list.add(t);
-                }
-                if(t.getChecked() && t.getCondition() < 4){
-                    return;
-                }
-            }
-        }
-
-        for (Task t : list) {
-            for (Condition c : tPool.getConditions()) {
-                if (c.getTasks().size() > 0) {
-                    for (int i = c.getTasks().size() - 1; i >= 0; i--) {
-                        if (c.getTasks().get(i).getId() == t.getId()) {
-                            c.getTasks().remove(i);
-                        }
-
-                    }
-                }
-            }
-        }
-        for (Task t : list) {
-            t.setChecked(false);
-            t.setCondition(1);
-            tPool.getConditions().get(0).getTasks().add(t);
-        }
         this.notifyDataSetChanged();
     }
 }

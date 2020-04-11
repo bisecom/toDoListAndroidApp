@@ -14,6 +14,7 @@ import android.widget.TimePicker;
 import androidx.appcompat.app.AppCompatActivity;
 import com.e.todolist.models.Task;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public class TaskAddingActivity extends AppCompatActivity {
@@ -66,8 +67,8 @@ public class TaskAddingActivity extends AppCompatActivity {
             case R.id.saveClick:
                 String subjStr = subjET.getText().toString();
                 String descrStr = descrET.getText().toString();
-
-                Task task = new Task(initialId == -1 ? -1 : initialId, subjStr, descrStr, taskCondition == -1 ? -1 : taskCondition, currentDateTime.getText().toString(), isImportant, false);
+                String taskTime = currentDateTime.getText().toString();
+                Task task = new Task(initialId == -1 ? -1 : initialId, subjStr, descrStr, taskCondition == -1 ? 1 : taskCondition, taskTime, isImportant, false);
                 Intent intentFilled = new Intent();
                 intentFilled.putExtra(MainActivity.ACCESS_MESSAGE, task);
                 setResult(RESULT_OK, intentFilled);
@@ -99,10 +100,15 @@ public class TaskAddingActivity extends AppCompatActivity {
     }
     // установка начальных даты и времени
     private void setInitialDateTime() {
-        currentDateTime.setText(DateUtils.formatDateTime(this,
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        dateFormat.setTimeZone(dateAndTime.getTimeZone());
+        //System.out.println(dateFormat.format(dateAndTime.getTime()));
+        //String dateTime = dateFormat.format(dateAndTime.getTime());
+        currentDateTime.setText(dateFormat.format(dateAndTime.getTime()));
+        /*currentDateTime.setText(DateUtils.formatDateTime(this,
                 dateAndTime.getTimeInMillis(),
                 DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR
-                        | DateUtils.FORMAT_SHOW_TIME));
+                        | DateUtils.FORMAT_SHOW_TIME));*/
     }
 
     // установка обработчика выбора времени

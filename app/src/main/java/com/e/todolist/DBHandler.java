@@ -5,7 +5,15 @@ import android.util.Log;
 import com.e.todolist.models.Condition;
 import com.e.todolist.models.Task;
 import com.e.todolist.models.TasksPool;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -77,38 +85,70 @@ public class DBHandler {
         return nextId;
     }
 
+    public void editTask(Task task) {
+        realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        Task temp = realm.where(Task.class).equalTo("id", task.getId()).findFirst();
+        if(temp != null) {
+            temp.setSubject(task.getSubject());
+            temp.setDescription(task.getDescription());
+            temp.setPlacementTime(task.getPlacementTime());
+            temp.setCondition(task.getCondition());
+            temp.setImportant(task.getImportant());
 
+            realm.insertOrUpdate(temp);
+        }
+        realm.commitTransaction();
+        realm.close();
+    }
+
+    public void moveTasksToCondition(ArrayList<Task> tasksList, int condToApply){
+        realm = Realm.getDefaultInstance();
+        for(Task task : tasksList) {
+            realm.beginTransaction();
+            Task temp = realm.where(Task.class).equalTo("id", task.getId()).findFirst();
+            if (temp != null) {
+                temp.setCondition(condToApply);
+                realm.insertOrUpdate(temp);
+            }
+            realm.commitTransaction();
+        }
+        realm.close();
+    }
+
+    public void clearTrash() {
+        int trashCond = 4;
+        realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        RealmResults<Task> result = realm.where(Task.class).equalTo("condition", trashCond).findAll();
+        if (result != null) {
+            result.deleteAllFromRealm();
+        }
+        realm.commitTransaction();
+        realm.close();
+    }
+
+    public void removeTasks(ArrayList<Task> tasksList){
+        realm = Realm.getDefaultInstance();
+        for(Task task : tasksList) {
+            realm.beginTransaction();
+            RealmResults<Task> result = realm.where(Task.class).equalTo("id",task.getId()).findAll();
+            result.deleteAllFromRealm();
+            realm.commitTransaction();
+        }
+        realm.close();
+    }
 
     public void initialDataFill() {
-       /* Condition condActual = new Condition(ACTUAL_COND);
-        Condition condOverdue = new Condition(OVERDUE_COND);
-        Condition condDone = new Condition(DONE_COND);
-        Condition condTrash = new Condition(TRASH_COND);
-
-        condActual.addTask(new Task(1, "Task 1", "Description for task 1", 1, "2020-04-08 09:00:00.0", false, false));
-        condActual.addTask(new Task(2, "Task 2", "Description for task 2", 1, "2020-04-08 09:30:00.0", true, false));
-        condActual.addTask(new Task(3, "Task 3", "Description for task 3", 1, "2020-04-08 10:00:00.0", false, false));
-
-        condOverdue.addTask(new Task(4, "Task 4", "Description for task 4", 2, "2020-04-06 09:00:00.0", true, false));
-        condOverdue.addTask(new Task(5, "Task 5", "Description for task 5", 2, "2020-04-07 09:00:00.0", false, false));
-
-        condDone.addTask(new Task(6, "Task 6", "Description for task 6", 3, "2020-04-05 09:00:00.0", false, false));
-        condDone.addTask(new Task(7, "Task 7", "Description for task 7", 3, "2020-04-04 07:00:00.0", false, false));
-
-        condTrash.addTask(new Task(8,"Task 8", "Description for task 8", 4, "2020-04-06 09:00:00.0", true, false));
-
-        tPool.addCondition(condActual);  tPool.addCondition(condOverdue);
-        tPool.addCondition(condDone);  tPool.addCondition(condTrash);*/
-
         ArrayList<Task> tasks = new ArrayList<>();
-        tasks.add(new Task(0, "Task 1", "Description for task 1", 1, "2020-04-08 09:00:00.0", false, false));
-        tasks.add(new Task(0, "Task 2", "Description for task 2", 1, "2020-04-08 09:30:00.0", true, false));
-        tasks.add(new Task(0, "Task 3", "Description for task 3", 1, "2020-04-08 10:00:00.0", false, false));
-        tasks.add(new Task(0, "Task 4", "Description for task 4", 2, "2020-04-06 09:00:00.0", true, false));
-        tasks.add(new Task(0, "Task 5", "Description for task 5", 2, "2020-04-07 09:00:00.0", false, false));
-        tasks.add(new Task(0, "Task 6", "Description for task 6", 3, "2020-04-05 09:00:00.0", false, false));
-        tasks.add(new Task(0, "Task 7", "Description for task 7", 3, "2020-04-04 07:00:00.0", false, false));
-        tasks.add(new Task(0, "Task 8", "Description for task 8", 4, "2020-04-06 09:00:00.0", true, false));
+        tasks.add(new Task(0, "Task 1", "Description for task 1", 1, "2020-04-11 19:00", false, false));
+        tasks.add(new Task(0, "Task 2", "Description for task 2", 1, "2020-04-11 12:28", true, false));
+        tasks.add(new Task(0, "Task 3", "Description for task 3", 1, "2020-04-08 10:00", false, false));
+        tasks.add(new Task(0, "Task 4", "Description for task 4", 2, "2020-04-06 09:00", true, false));
+        tasks.add(new Task(0, "Task 5", "Description for task 5", 2, "2020-04-07 09:00", false, false));
+        tasks.add(new Task(0, "Task 6", "Description for task 6", 3, "2020-04-05 09:00", false, false));
+        tasks.add(new Task(0, "Task 7", "Description for task 7", 3, "2020-04-04 07:00", false, false));
+        tasks.add(new Task(0, "Task 8", "Description for task 8", 4, "2020-04-06 09:00", true, false));
 
         realm = Realm.getDefaultInstance();
         for (int i = 0; i < tasks.size(); i++) {
@@ -121,7 +161,6 @@ public class DBHandler {
             realm.commitTransaction();
         }
         realm.close();
-
     }
 
     public void readDataFromDb(){
@@ -131,22 +170,42 @@ public class DBHandler {
         tasksList.addAll(realm.copyFromRealm(results));
         realm.close();
 
-        for(Task task : tasksList){
-            if(task.getCondition() == 1){
-                condActual.addTask(task);
-            }
-            if(task.getCondition() == 2){
+        Calendar curTimeAndDate = new GregorianCalendar();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        dateFormat.setTimeZone(curTimeAndDate.getTimeZone());
+        long millisCurrTimeAndDate = curTimeAndDate.getTimeInMillis();
+
+        for (Task task : tasksList) {
+            if (task.getCondition() == 2) {
                 condOverdue.addTask(task);
             }
-            if(task.getCondition() == 3){
+            if (task.getCondition() == 3) {
                 condDone.addTask(task);
             }
-            if(task.getCondition() == 4){
+            if (task.getCondition() == 4) {
                 condTrash.addTask(task);
             }
+            if (task.getCondition() == 1) {
+                Calendar taskDate = Calendar.getInstance();
+                try {
+                    taskDate.setTime(dateFormat.parse(task.getPlacementTime()));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                long millisTaskTime = taskDate.getTimeInMillis();
+                if (millisCurrTimeAndDate > millisTaskTime) {
+                    task.setCondition(2);
+                    condOverdue.addTask(task);
+                    editTask(task);
+                } else {
+                    condActual.addTask(task);
+                }
+            }
         }
-        tPool.addCondition(condActual);  tPool.addCondition(condOverdue);
-        tPool.addCondition(condDone);  tPool.addCondition(condTrash);
+        tPool.addCondition(condActual);
+        tPool.addCondition(condOverdue);
+        tPool.addCondition(condDone);
+        tPool.addCondition(condTrash);
     }
 
 }
