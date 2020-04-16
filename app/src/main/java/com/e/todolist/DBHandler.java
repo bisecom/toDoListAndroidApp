@@ -139,8 +139,8 @@ public class DBHandler {
     public void initialDataFill() {
         ArrayList<Task> tasks = new ArrayList<>();
         tasks.add(new Task(0, "Task 1", "Description for task 1", 1, "2020-04-13 20:00", false, false));
-        tasks.add(new Task(0, "Task 2", "Description for task 2", 1, "2020-04-11 19:55", true, false));
-        tasks.add(new Task(0, "Task 3", "Description for task 3", 1, "2020-04-08 10:00", false, false));
+        tasks.add(new Task(0, "Task 2", "Description for task 2", 1, "2020-04-12 11:55", true, false));
+        tasks.add(new Task(0, "Task 3", "Description for task 3", 1, "2020-04-12 12:00", false, false));
         tasks.add(new Task(0, "Task 4", "Description for task 4", 2, "2020-04-06 09:00", true, false));
         tasks.add(new Task(0, "Task 5", "Description for task 5", 2, "2020-04-07 09:00", false, false));
         tasks.add(new Task(0, "Task 6", "Description for task 6", 3, "2020-04-05 09:00", false, false));
